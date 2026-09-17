@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: brandroom-ugc-studio
+    runtime: python
+    buildCommand: ""
+    startCommand: python3 server.py
+    envVars:
+      - key: PORT
+        value: 10000

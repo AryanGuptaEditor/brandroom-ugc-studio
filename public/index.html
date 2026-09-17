@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brandroom AI UGC Creator Studio — Lookbook & Master Prompt Engine</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              400: '#5a6df0',
+              500: '#4055e8',
+              600: '#3043d1',
+              700: '#2332ba',
+              800: '#1e2996',
+              900: '#1a2273',
+              950: '#0f1442',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-[#0b0f17] text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- TOP HEADER NAVBAR                                                         -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 bg-[#0b0f17]/95 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <!-- App Brand -->
+      <div class="flex items-center gap-3">
+        <img src="logo.png" alt="Brandroom Logo" class="w-10 h-10 rounded-xl shadow-lg shadow-blue-500/25 border border-blue-400/30 object-contain shrink-0">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white">Brandroom <span class="text-blue-400">UGC Studio</span></h1>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full">v1.0 Engine</span>
+          </div>
+          <p class="text-xs text-slate-400">Character Casting, 3-Shot Lookbook & Memory Vault</p>
+        </div>
+      </div>
+
+      <!-- Direct AI Provider Switcher (Gemini, ChatGPT, Claude) & Keys -->
+      <div class="flex items-center gap-2.5">
+        <div class="flex items-center bg-slate-900/90 border border-slate-800 p-1 rounded-xl text-xs shadow-sm">
+          <span class="text-slate-400 px-2 text-[11px] font-medium hidden md:inline-flex items-center gap-1.5 border-r border-slate-800 mr-1">
+            <span id="activeModelStatusDot" class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+            AI Engine:
+          </span>
+          <div class="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800/80 text-[11px] font-medium gap-0.5">
+            <button type="button" id="headerBtnGemini" onclick="setPreferredProvider('gemini')" class="model-switch-btn px-2.5 py-1 rounded-md transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Google Gemini 1.5 Flash / Pro (Live Web Search)">
+              <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+              <span>Gemini</span>
+            </button>
+            <button type="button" id="headerBtnOpenAI" onclick="setPreferredProvider('openai')" class="model-switch-btn px-2.5 py-1 rounded-md transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="OpenAI ChatGPT (GPT-4o)">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>ChatGPT</span>
+            </button>
+            <button type="button" id="headerBtnClaude" onclick="setPreferredProvider('claude')" class="model-switch-btn px-2.5 py-1 rounded-md transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Anthropic Claude 3.5 Sonnet">
+              <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+              <span>Claude</span>
+            </button>
+            <button type="button" id="headerBtnAuto" onclick="setPreferredProvider('auto')" class="model-switch-btn px-2.5 py-1 rounded-md transition flex items-center gap-1 text-slate-400 hover:text-white" title="Auto-Select Best Available">
+              <span>⚡ Auto</span>
+            </button>
+          </div>
+        </div>
+
+        <button onclick="openApiKeysModal()" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition shadow-sm" title="Configure API Keys">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span class="hidden sm:inline">AI Keys</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN WORKSPACE                                                            -->
+  <!-- ========================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-8 py-6">
+
+    <!-- MODE SWITCHER BAR: STUDIO vs AI CHAT DIRECTOR -->
+    <div class="flex items-center justify-between mb-6 bg-slate-900/90 border border-slate-800 p-2 rounded-2xl">
+      <div class="flex items-center gap-2">
+        <button id="navTabStudioBtn" onclick="switchMainView('studio')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white flex items-center gap-2 transition shadow-md">
+          <i data-lucide="sliders" class="w-4 h-4"></i>
+          <span>Lookbook & Prompt Studio</span>
+        </button>
+        <button id="navTabChatBtn" onclick="switchMainView('chat')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-2 transition">
+          <i data-lucide="message-square" class="w-4 h-4 text-cyan-400"></i>
+          <span>AI Creative Director Chat</span>
+        </button>
+      </div>
+
+      <!-- Quick Demo Campaign Button -->
+      <button onclick="loadSampleData('fashion_minimalist')" class="text-xs text-cyan-300 hover:text-cyan-200 bg-cyan-950/40 border border-cyan-800/50 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 transition">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+        <span>Load 3-Shot Reference Demo</span>
+      </button>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- ======================================================================= -->
+    <!-- QUICK AI 1-SENTENCE COMMAND BAR                                        -->
+    <!-- ======================================================================= -->
+    <div class="mb-6 bg-gradient-to-r from-slate-900 via-slate-900/95 to-indigo-950/40 border border-blue-500/30 rounded-2xl p-4 shadow-lg shadow-blue-950/20">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 text-[10px] font-extrabold tracking-wider uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="zap" class="w-3 h-3 text-blue-400"></i> Quick AI Prompt
+          </span>
+          <span class="text-xs text-slate-300 font-semibold">1-Sentence AI Casting & Generation</span>
+        </div>
+        <span class="text-[11px] text-slate-400">Type what you need in plain English — AI configures & generates instantly</span>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2">
+        <div class="relative flex-1">
+          <input type="text" id="quickPromptInput" placeholder="e.g. I need a 22yo Indian female creator in a white linen shirt reviewing skincare serum, vertical format" class="w-full bg-slate-950 border border-slate-700/90 focus:border-blue-400 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-100 placeholder-slate-500 outline-none transition shadow-inner" onkeydown="if(event.key==='Enter') executeQuickPrompt()">
+          <button type="button" onclick="document.getElementById('quickPromptInput').value=''" class="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300 text-xs" title="Clear">✕</button>
+        </div>
+        <button type="button" id="btnQuickPrompt" onclick="executeQuickPrompt()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition active:scale-[0.98] shrink-0">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          <span id="btnQuickPromptText">Auto-Fill & Generate</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 1: STUDIO FORM & 3-SHOT LOOKBOOK OUTPUT                            -->
+    <!-- ======================================================================= -->
+    <div id="viewStudio" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <!-- LEFT COLUMN: INPUT CONTROLS (6 cols) -->
+      <div class="lg:col-span-6 space-y-6">
+
+        <!-- 1. PRODUCT & BRAND -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/20">1</span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-200">Product & Brand Details</h2>
+            </div>
+            <span class="text-[11px] text-slate-400">What are you featuring?</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Brand Name</label>
+              <input type="text" id="inputBrandName" value="Brandroom Studio" placeholder="e.g. Brandroom Studio" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-100 outline-none">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Product Name</label>
+              <input type="text" id="inputProductName" value="Linen Summer Outfit" placeholder="e.g. Silk Serum or Linen Shirt" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-100 outline-none">
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Category</label>
+              <select id="selectCategory" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-100 outline-none text-xs cursor-pointer">
+                <option value="Fashion & Apparel (Streetwear & Casual)" selected>Fashion & Apparel (Streetwear & Casual)</option>
+                <option value="Fashion & Apparel (Luxury Minimalist & Formal)">Fashion & Apparel (Luxury Minimalist & Formal)</option>
+                <option value="Beauty / Clean Skincare & Serums">Beauty / Clean Skincare & Serums</option>
+                <option value="Dermatology & Clinical Skincare">Dermatology & Clinical Skincare</option>
+                <option value="Haircare, Scalp Treatments & Oils">Haircare, Scalp Treatments & Oils</option>
+                <option value="Fitness, Gym Apparel & Bodybuilding">Fitness, Gym Apparel & Bodybuilding</option>
+                <option value="Health Supplements, Vitamins & Proteins">Health Supplements, Vitamins & Proteins</option>
+                <option value="Gourmet Food, Artisan Snacks & Coffee">Gourmet Food, Artisan Snacks & Coffee</option>
+                <option value="Healthy Energy & Functional Beverages">Healthy Energy & Functional Beverages</option>
+                <option value="Smart Tech, Wearables & Audio Gadgets">Smart Tech, Wearables & Audio Gadgets</option>
+                <option value="Mobile Apps, SaaS & FinTech Services">Mobile Apps, SaaS & FinTech Services</option>
+                <option value="Modern Home Decor, Linen & Interior">Modern Home Decor, Linen & Interior</option>
+                <option value="Fine Jewelry, Minimalist Rings & Watches">Fine Jewelry, Minimalist Rings & Watches</option>
+                <option value="Artisan Fragrance, Perfumes & Scents">Artisan Fragrance, Perfumes & Scents</option>
+                <option value="Eco-Friendly & Sustainable Lifestyle">Eco-Friendly & Sustainable Lifestyle</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Origin / Market</label>
+              <select id="inputProductOrigin" onchange="suggestCreatorFromProduct()" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-100 outline-none text-xs cursor-pointer">
+                <option value="Global / Universal International">Global / Universal International</option>
+                <option value="India — Urban Metro (Mumbai / Delhi / Bengaluru)" selected>India — Urban Metro (Mumbai / Delhi / Bengaluru)</option>
+                <option value="India — Indo-Western Contemporary">India — Indo-Western Contemporary</option>
+                <option value="USA / North American Coastal">USA / North American Coastal</option>
+                <option value="United Kingdom / London Urban">United Kingdom / London Urban</option>
+                <option value="France / Parisian High-Fashion">France / Parisian High-Fashion</option>
+                <option value="Japan / Tokyo Minimalist">Japan / Tokyo Minimalist</option>
+                <option value="South Korea / Seoul Clean Aesthetic">South Korea / Seoul Clean Aesthetic</option>
+                <option value="Mediterranean / Southern European Warmth">Mediterranean / Southern European Warmth</option>
+                <option value="Latin America (Brazil / Mexico / Colombia)">Latin America (Brazil / Mexico / Colombia)</option>
+                <option value="Middle East & Gulf (Dubai / Riyadh Luxury)">Middle East & Gulf (Dubai / Riyadh Luxury)</option>
+                <option value="Southeast Asia (Singapore / Thailand / Indonesia)">Southeast Asia (Singapore / Thailand / Indonesia)</option>
+                <option value="Australia / Sydney Coastal Lifestyle">Australia / Sydney Coastal Lifestyle</option>
+                <option value="Nordic / Scandinavian Functional Minimal">Nordic / Scandinavian Functional Minimal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- PRODUCT PHOTO UPLOAD & VISUAL CASTING -->
+          <div class="pt-3 border-t border-slate-800/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <i data-lucide="camera" class="w-3.5 h-3.5 text-blue-400"></i>
+                <label class="font-bold text-xs text-slate-200 uppercase tracking-wider">Product Photo & AI Casting</label>
+              </div>
+              <span class="text-[10px] text-slate-400">Upload to auto-recommend best matching creator</span>
+            </div>
+
+            <!-- Product Drop Zone -->
+            <div id="productDropZone" class="border-2 border-dashed border-slate-800 hover:border-blue-500/50 rounded-xl p-3 text-center transition group bg-slate-950/40 cursor-pointer" onclick="document.getElementById('fileProductImage').click()">
+              <input type="file" id="fileProductImage" accept="image/*" class="hidden" onchange="handleProductImageUpload(event)">
+              
+              <!-- Empty state placeholder -->
+              <div id="productUploadPlaceholder" class="py-2.5 flex flex-col items-center justify-center gap-1">
+                <i data-lucide="image-plus" class="w-6 h-6 text-slate-400 group-hover:text-blue-400 transition mb-0.5"></i>
+                <p class="text-xs text-slate-300 font-medium">Drop product photo here, or <span class="text-blue-400 underline">browse</span></p>
+                <p class="text-[10px] text-slate-500">Bottle, apparel, gadget, cosmetics, jewelry, food & more (PNG, JPG, WEBP)</p>
+              </div>
+
+              <!-- Uploaded Preview Container -->
+              <div id="productUploadPreviewContainer" class="hidden flex items-center justify-between gap-3 text-left">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 shrink-0">
+                    <img id="productImagePreview" src="" alt="Product Preview" class="w-full h-full object-cover">
+                  </div>
+                  <div class="min-w-0">
+                    <p id="productFileName" class="text-xs font-semibold text-slate-200 truncate">product_image.jpg</p>
+                    <p id="productAnalysisStatus" class="text-[10px] text-blue-400 flex items-center gap-1">
+                      <span>✓ Ready for casting</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <button type="button" id="btnAnalyzeProduct" onclick="event.stopPropagation(); analyzeProductImage();" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i>
+                    <span id="btnAnalyzeProductText">Suggest Creator</span>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); clearProductImage();" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-red-400 border border-slate-700 transition text-xs" title="Remove image">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUCT VISION CREATOR SUGGESTIONS CARDS -->
+            <div id="productSuggestionsContainer" class="hidden space-y-2.5 pt-2">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                  <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">AI Suggested Creators:</span>
+                  <span id="productBatchBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/60 font-mono">Batch 1</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="productDetectedBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono">Vision Matched</span>
+                  <button type="button" id="btnSuggestMoreCreators" onclick="suggestMoreProductCreators()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-blue-400 hover:text-blue-300 border border-blue-500/30 text-[11px] font-semibold flex items-center gap-1.5 transition shadow-sm" title="Suggest more contrasting creators">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                    <span id="btnSuggestMoreText">Suggest More</span>
+                  </button>
+                </div>
+              </div>
+              <div id="productSuggestionsCards" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. CREATOR CASTING (3 MODES: MANUAL, AUTO-MATCH, UPLOAD) -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xs font-bold border border-cyan-500/20">2</span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-200">Cast Your Character</h2>
+            </div>
+
+            <!-- 3 Clear Tab Buttons -->
+            <div class="flex bg-slate-950 border border-slate-800 rounded-xl p-0.5 text-[11px]">
+              <button type="button" id="tabManualBtn" onclick="switchCreatorTab('manual')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-white font-semibold transition flex items-center gap-1">
+                <i data-lucide="edit-3" class="w-3 h-3 text-cyan-400"></i> Manual
+              </button>
+              <button type="button" id="tabSuggestBtn" onclick="switchCreatorTab('suggest')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 text-blue-400"></i> Auto-Match
+              </button>
+              <button type="button" id="tabUploadBtn" onclick="switchCreatorTab('upload')" class="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition flex items-center gap-1">
+                <i data-lucide="upload" class="w-3 h-3"></i> Upload Vault
+              </button>
+            </div>
+          </div>
+
+          <!-- ACTIVE UPLOADED CHARACTER BADGE -->
+          <div id="activeCharacterBanner" class="hidden bg-blue-950/40 border border-blue-800/60 rounded-xl p-2.5 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2 text-blue-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
+              <span id="activeCharacterBannerText" class="font-semibold">Using Uploaded Character</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="detachUploadedCharacter()" class="text-[11px] text-slate-400 hover:text-red-300 underline font-medium">Switch to Manual Character</button>
+            </div>
+          </div>
+
+          <!-- TAB 1: MANUAL CHARACTER ENTRY (CLEAN SINGLE CONTROLS) -->
+          <div id="panelManualCreator" class="space-y-4 text-xs">
+
+            <!-- ROW 1: GENDER & AGE -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- GENDER PILL SELECTOR -->
+              <div>
+                <label class="block text-slate-400 mb-1.5 font-medium">Gender</label>
+                <input type="hidden" id="inputGender" value="Female">
+                <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 border border-slate-800 rounded-xl">
+                  <button type="button" id="genderBtnFemale" onclick="setGender('Female')" class="gender-pill px-1.5 py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white transition flex items-center justify-center gap-1 shadow-sm">
+                    <span>👩 Female</span>
+                  </button>
+                  <button type="button" id="genderBtnMale" onclick="setGender('Male')" class="gender-pill px-1.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+                    <span>👨 Male</span>
+                  </button>
+                  <button type="button" id="genderBtnNonBinary" onclick="setGender('Non-Binary')" class="gender-pill px-1.5 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+                    <span>🧑 Other</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- AGE INPUT WITH PRESET CHIPS -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="text-slate-400 font-medium">Age</label>
+                  <div class="flex items-center gap-1">
+                    <button type="button" onclick="setAge(19)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">19</button>
+                    <button type="button" onclick="setAge(23)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">23</button>
+                    <button type="button" onclick="setAge(26)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">26</button>
+                    <button type="button" onclick="setAge(35)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">35</button>
+                  </div>
+                </div>
+                <input type="number" id="inputAge" value="23" min="16" max="95" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-100 text-xs outline-none">
+              </div>
+            </div>
+
+            <!-- ROW 2: ETHNICITY & HAIR STYLING -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- ETHNICITY / HERITAGE -->
+              <div>
+                <label class="block text-slate-400 mb-1.5 font-medium">Ethnicity / Cultural Heritage</label>
+                <select id="inputEthnicity" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-200 outline-none text-xs cursor-pointer">
+                  <option value="South Asian / Indian — Warm golden medium complexion with radiant undertones" selected>South Asian / Indian (Warm golden)</option>
+                  <option value="South Asian / Indian — Rich wheatish complexion with deep expressive eyes">South Asian / Indian (Wheatish)</option>
+                  <option value="European / Fair with natural subtle freckles">European / Fair (Subtle freckles)</option>
+                  <option value="East Asian / Korean-Japanese — Smooth porcelain skin with subtle warm undertone">East Asian / Korean-Japanese</option>
+                  <option value="Mediterranean / Southern European — Warm olive skin tone with sun-kissed warmth">Mediterranean / Southern European</option>
+                  <option value="Afro-descendant / Black — Deep rich melanin with natural radiant skin sheen">Afro-descendant / Black (Radiant)</option>
+                  <option value="Afro-descendant / Black — Warm caramel-toned complexion with sculpted cheekbones">Afro-descendant / Black (Caramel)</option>
+                  <option value="Latin American — Warm bronze complexion with radiant golden undertones">Latin American (Bronze glow)</option>
+                  <option value="Middle Eastern / Arab — Warm wheatish-olive skin with defined dark brows">Middle Eastern / Arab (Olive)</option>
+                  <option value="Southeast Asian — Smooth warm honey-toned skin with delicate features">Southeast Asian (Honey-toned)</option>
+                  <option value="Nordic / Scandinavian — Fair porcelain skin with light rosy flush">Nordic / Scandinavian (Fair)</option>
+                  <option value="Mixed Heritage / Multi-ethnic — Harmonious global blend with warm hazel gaze">Mixed Heritage / Multi-ethnic blend</option>
+                </select>
+              </div>
+
+              <!-- HAIR STYLING -->
+              <div>
+                <label class="block text-slate-400 mb-1.5 font-medium">Hair Styling</label>
+                <select id="inputHair" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-slate-200 outline-none text-xs cursor-pointer">
+                  <option value="Long glossy dark-brown hair with loose effortless waves and organic flyaways" selected>Long glossy dark-brown waves</option>
+                  <option value="Messy casual top-knot bun with soft face-framing tendrils and baby hairs">Messy top-knot bun with tendrils</option>
+                  <option value="Curly short messy brown hair with soft temple volume">Curly short messy brown hair</option>
+                  <option value="Neat textured short taper fade with clean natural hairline and scissor-cut top">Textured short taper fade</option>
+                  <option value="Voluminous natural afro curls with soft definition and healthy moisture sheen">Voluminous natural afro curls</option>
+                  <option value="Shoulder-length straight jet-black hair with wispy curtain bangs">Shoulder-length straight black hair</option>
+                  <option value="Textured medium wavy crop with natural windblown movement and matte finish">Textured medium wavy crop</option>
+                  <option value="Sleek middle-parted low ponytail with clean polished edges and subtle ear tuck">Sleek low ponytail with clean edges</option>
+                  <option value="Layered blonde beach waves with sun-kissed highlights and natural texture">Layered blonde beach waves</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- ROW 3: FACIAL FEATURES -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-slate-400 font-medium">Facial Features & Skin Details</label>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-500">Preset:</span>
+                  <select onchange="if(this.value){ document.getElementById('inputFacialFeatures').value = this.value; this.selectedIndex = 0; }" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-cyan-300 rounded px-2 py-0.5 border border-slate-700 outline-none cursor-pointer w-28 truncate shrink-0">
+                    <option value="">✨ Ideas...</option>
+                    <option value="Softly defined oval face, warm almond deep-brown eyes, natural radiant golden undertone, authentic unretouched skin micro-pores">Soft oval face, warm almond eyes</option>
+                    <option value="Lean softly angular jawline, expressive hazel eyes, natural skin micro-pores, subtle earring">Lean angular jawline, hazel eyes</option>
+                    <option value="High sculpted cheekbones, friendly approachable smile with natural laugh lines, clear authentic skin">High cheekbones, approachable smile</option>
+                    <option value="Strong clean jawline, light groomed 3-day stubble, calm direct gaze into lens, authentic skin grain">Strong jawline, groomed stubble</option>
+                    <option value="Delicate features, expressive warm brown eyes, subtle cute nose freckles, natural soft lip tone">Delicate features, subtle freckles</option>
+                  </select>
+                </div>
+              </div>
+              <textarea id="inputFacialFeatures" rows="3" placeholder="Describe facial structure, eye color, skin texture..." class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl p-3 text-slate-200 text-xs outline-none resize-none leading-relaxed">Softly defined oval face, warm almond deep-brown eyes, natural radiant golden undertone, authentic unretouched skin texture with visible micro-pores</textarea>
+            </div>
+
+            <!-- ROW 4: WARDROBE -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-slate-400 font-medium">Wardrobe & Complete Outfit</label>
+                <div class="flex items-center gap-1">
+                  <span class="text-[10px] text-slate-500">Preset:</span>
+                  <select onchange="if(this.value){ document.getElementById('inputWardrobe').value = this.value; this.selectedIndex = 0; }" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-blue-300 rounded px-2 py-0.5 border border-slate-700 outline-none cursor-pointer w-28 truncate shrink-0">
+                    <option value="">✨ Ideas...</option>
+                    <option value="Relaxed breathable sage-green linen kurti with rolled cuffs, slim off-white cigarette trousers, clean minimalist leather sandals">Sage-green kurti & trousers</option>
+                    <option value="Minimalist black textured mandarin-collar long-sleeve shirt, tailored black straight trousers, polished black leather derby shoes">Black mandarin shirt & trousers</option>
+                    <option value="Oversized heavyweight ivory cotton drop-shoulder crewneck tee, relaxed light-wash straight denim jeans, clean white leather sneakers">Ivory tee & straight denim</option>
+                    <option value="Tailored unstructured beige linen blazer over clean white cotton crewneck, pleated olive chinos, dark brown suede loafers">Beige blazer & olive chinos</option>
+                    <option value="Charcoal fitted athletic ribbed performance tank, high-waisted seamless training leggings, neutral running sneakers">Charcoal athletic tank & leggings</option>
+                    <option value="Modern dusty-rose draped linen shirt with rolled sleeves, pleated wide-leg cream trousers, tan woven leather mules">Dusty-rose shirt & cream trousers</option>
+                  </select>
+                </div>
+              </div>
+              <textarea id="inputWardrobe" rows="3" placeholder="Describe shirt, trousers, footwear, fabric textures..." class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl p-3 text-slate-200 text-xs outline-none resize-none leading-relaxed">Relaxed breathable sage-green linen kurti with rolled cuffs, slim off-white cigarette trousers, clean minimalist leather sandals</textarea>
+            </div>
+          </div>
+
+          <!-- TAB 2: PRODUCT ORIGIN AUTO-MATCH SUGGESTIONS -->
+          <div id="panelSuggestCreator" class="hidden space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300">Auto-suggested personas for <strong id="suggestOriginLabel" class="text-blue-400">Global</strong>:</span>
+              <button type="button" onclick="suggestCreatorFromProduct()" class="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-[11px]">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh Ideas
+              </button>
+            </div>
+            <div id="productPersonaCards" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
+          </div>
+
+          <!-- TAB 3: UPLOAD REFERENCE & CHARACTER VAULT -->
+          <div id="panelUploadCreator" class="hidden space-y-4">
+            
+            <!-- UPLOAD DROP ZONE & CONTROLS -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-300 font-semibold flex items-center gap-1.5">
+                  <i data-lucide="upload-cloud" class="w-3.5 h-3.5 text-blue-400"></i>
+                  Upload Reference Character Photo
+                </span>
+                
+                <button type="button" onclick="toggleHideUploadedImages()" id="btnToggleHidePreview" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5 border border-slate-700 transition">
+                  <i data-lucide="eye" id="iconTogglePreview" class="w-3 h-3 text-cyan-400"></i>
+                  <span id="textTogglePreview">Hide Preview on Screen</span>
+                </button>
+              </div>
+
+              <div id="uploadDropZone" class="border-2 border-dashed border-slate-800 hover:border-blue-500/50 rounded-xl p-4 text-center transition group bg-slate-950/40 cursor-pointer" onclick="document.getElementById('fileCharacterImage').click()">
+                <input type="file" id="fileCharacterImage" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                
+                <div id="uploadPlaceholder" class="py-2.5">
+                  <i data-lucide="upload-cloud" class="w-7 h-7 mx-auto mb-1 text-slate-400 group-hover:text-blue-400 transition"></i>
+                  <p class="text-xs font-semibold text-slate-200">Click or Drop Photo Here</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">Accurately detects gender & origin. Stored in memory vault with character lock.</p>
+                </div>
+
+                <!-- PREVIEW CONTAINER -->
+                <div id="uploadPreviewContainer" class="hidden flex items-center gap-3 text-left">
+                  <img id="imagePreview" src="" alt="Preview" class="w-16 h-20 object-cover rounded-lg border border-slate-700 shadow-md">
+                  <div class="flex-1 min-w-0">
+                    <span id="detectedOriginBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      Detecting features...
+                    </span>
+                    <p id="detectedSummary" class="text-xs text-slate-300 mt-1">Analyzing...</p>
+                    <div class="flex items-center gap-2 mt-2">
+                      <button type="button" onclick="event.stopPropagation(); useCurrentUploadedImage()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-[10px] rounded-lg shadow-sm transition">
+                        ✓ Use This Character in Prompt
+                      </button>
+                      <button type="button" onclick="event.stopPropagation(); toggleHideUploadedImages(true)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-lg border border-slate-700 transition">
+                        Hide Preview
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- OUTFIT RECOMMENDATIONS -->
+            <div id="outfitsRecommendationSection" class="hidden space-y-2">
+              <span class="text-xs font-medium text-slate-300">Recommended Outfits for Detected Person:</span>
+              <div id="outfitCardsContainer" class="grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
+            </div>
+
+            <!-- UPLOADED CHARACTER GALLERY / VAULT -->
+            <div class="space-y-2 pt-2 border-t border-slate-800/80">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i>
+                  Uploaded Character Library
+                  <span id="uploadedCountBadge" class="text-[10px] bg-slate-800 text-cyan-300 px-1.5 py-0.2 rounded-full font-mono">0</span>
+                </span>
+                <span class="text-[10px] text-slate-500">Select any character to lock into prompt</span>
+              </div>
+
+              <!-- CARDS OF UPLOADED CHARACTERS WITH THUMBNAIL IMAGES -->
+              <div id="uploadedCharactersGallery" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- CREATOR MEMORY VAULT CHIPS -->
+          <div class="pt-3 border-t border-slate-800/80">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <i data-lucide="brain" class="w-3.5 h-3.5 text-purple-400"></i>
+                Saved Character Memories
+                <span class="text-[10px] text-slate-400 font-normal">(Presets)</span>
+              </span>
+              <span class="text-[10px] text-slate-500">Auto-saved</span>
+            </div>
+            <div id="creatorMemoryList" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+
+        <!-- 3. SCENE, ASPECT RATIO & VISUAL FRAMING -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs font-bold border border-purple-500/20">3</span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-200">Scene, Format & Visual Framing</h2>
+            </div>
+            <span class="text-[11px] text-slate-400">Composition & Lighting</span>
+          </div>
+
+          <!-- ASPECT RATIO / FORMAT SELECTOR (EXPLICITLY REQUESTED BY USER) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5 text-xs">
+              <label class="block text-slate-400 font-medium">Image Format & Aspect Ratio</label>
+              <span class="text-[11px] text-blue-400 font-semibold" id="activeArLabel">📱 9:16 Vertical</span>
+            </div>
+            <input type="hidden" id="inputAspectRatio" value="9:16">
+            <div class="grid grid-cols-3 gap-2 bg-slate-950 p-1.5 border border-slate-800 rounded-xl">
+              <button type="button" id="arBtnVertical" onclick="setAspectRatio('9:16')" class="ar-pill px-3 py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white transition flex flex-col items-center gap-0.5 shadow-md shadow-blue-600/20">
+                <span class="flex items-center gap-1.5"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i> Vertical (9:16)</span>
+                <span class="text-[9px] text-blue-100 font-normal">Reels • TikTok • Shorts</span>
+              </button>
+              <button type="button" id="arBtnHorizontal" onclick="setAspectRatio('16:9')" class="ar-pill px-3 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex flex-col items-center gap-0.5">
+                <span class="flex items-center gap-1.5"><i data-lucide="tv" class="w-3.5 h-3.5"></i> Horizontal (16:9)</span>
+                <span class="text-[9px] text-slate-400 font-normal">Web • YouTube • Catalog</span>
+              </button>
+              <button type="button" id="arBtnSquare" onclick="setAspectRatio('1:1')" class="ar-pill px-3 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex flex-col items-center gap-0.5">
+                <span class="flex items-center gap-1.5"><i data-lucide="square" class="w-3.5 h-3.5"></i> Square (1:1)</span>
+                <span class="text-[9px] text-slate-400 font-normal">Feed • Carousel • Post</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-slate-400 font-medium">Environment / Backdrop</label>
+                <span class="text-[10px] text-slate-500 font-normal">Preset or Custom</span>
+              </div>
+              <select id="selectEnvironment" onchange="document.getElementById('inputEnvironment').value = this.value" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-xl px-3 py-2 text-slate-200 outline-none text-xs cursor-pointer">
+                <option value="Seamless neutral light-gray studio backdrop with soft floor contact shadows" selected>Seamless neutral light-gray studio backdrop (Lookbook Cyclorama)</option>
+                <option value="Warm minimalist cream/limewash textured studio wall with soft ambient floor falloff">Warm minimalist cream limewash textured wall</option>
+                <option value="High-end architectural concrete loft studio with soft diffused northern window light">High-end concrete loft studio with northern window light</option>
+                <option value="Clean modern bathroom with marble vanity, soft subway tile, and subtle warm mirror reflection">Clean modern bathroom with marble vanity & subway tile</option>
+                <option value="Sunlit contemporary apartment bedroom with organic linen bedding and soft bokeh plant">Sunlit contemporary apartment bedroom with organic linen</option>
+                <option value="Minimalist designer kitchen with honed quartz countertop and warm morning light">Minimalist designer kitchen with honed quartz countertop</option>
+                <option value="Chic urban outdoor cafe terrace with softly blurred street architecture">Chic urban outdoor cafe terrace with soft city backdrop</option>
+                <option value="Golden-hour rooftop terrace overlooking soft blurred urban skyline">Golden-hour rooftop terrace overlooking urban skyline</option>
+                <option value="Vibrant modern creative studio with sleek oak wood desk and ambient lamps">Vibrant modern creative studio with sleek oak desk</option>
+              </select>
+              <textarea id="inputEnvironment" rows="2" placeholder="Custom backdrop / environment description..." class="w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-xl p-2 text-slate-200 text-xs outline-none resize-none transition">Seamless neutral light-gray studio backdrop with soft floor contact shadows</textarea>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-slate-400 font-medium">Lighting Setup</label>
+                <span class="text-[10px] text-slate-500 font-normal">Preset or Custom</span>
+              </div>
+              <select id="selectLighting" onchange="document.getElementById('inputLighting').value = this.value" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-xl px-3 py-2 text-slate-200 outline-none text-xs cursor-pointer">
+                <option value="Clean diffused commercial softbox studio daylight with realistic micro-shadows" selected>Clean diffused commercial softbox studio daylight (Lookbook Standard)</option>
+                <option value="Natural soft morning window daylight with flattering organic shadows">Natural soft morning window daylight with flattering shadows</option>
+                <option value="High-key commercial studio lighting with dual diffused white reflectors">High-key commercial studio lighting with dual reflectors</option>
+                <option value="Golden-hour warm directional sunlight casting long soft warm shadows">Golden-hour warm directional sunlight with glowing skin edge</option>
+                <option value="Soft ring light eye reflection with clean, balanced, front-facing creator exposure">Soft ring light reflection with balanced front exposure</option>
+                <option value="Dramatic subtle side window chiaroscuro with gentle fill light">Dramatic side window light with gentle fill</option>
+                <option value="Overcast outdoor daylight with ultra-soft diffused shadows">Overcast outdoor daylight with ultra-soft diffused shadows</option>
+                <option value="Moody warm tungsten ambient room lighting paired with soft cool fill">Moody warm tungsten ambient room with soft cool fill</option>
+              </select>
+              <textarea id="inputLighting" rows="2" placeholder="Custom lighting description..." class="w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-xl p-2 text-slate-200 text-xs outline-none resize-none transition">Clean diffused commercial softbox studio daylight with realistic micro-shadows</textarea>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-slate-400 mb-1 font-medium">Product Interaction & Pose Action</label>
+              <input type="text" id="inputAction" value="Holding product delicately toward camera with authentic friendly curiosity" class="w-full bg-slate-950 border border-slate-800 focus:border-purple-500 rounded-xl px-3 py-2 text-slate-200 outline-none transition">
+            </div>
+
+            <!-- Hidden values for template compliance -->
+            <input type="hidden" id="selectVisualStyle" value="REAL HUMAN / PHOTOREALISTIC">
+            <input type="hidden" id="selectMoment" value="SCROLL-STOPPING HOOK">
+            <input type="hidden" id="selectPlatform" value="9:16 Vertical">
+            <input type="hidden" id="selectCamera" value="Commercial studio lens feel, eye-level, deep focus">
+          </div>
+        </div>
+
+        <!-- 4. FINE-TUNING & DIRECT ADJUSTMENTS -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-bold border border-amber-500/20">4</span>
+              <h2 class="font-bold text-xs uppercase tracking-wider text-slate-200">Fine-Tuning & Direct Adjustments</h2>
+            </div>
+            <span class="text-[11px] text-amber-400/90 font-medium">Prompt Tone & Camera Style</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Fine-Tune Preset Options</label>
+              <select id="selectFineTuneDropdown" onchange="document.getElementById('inputFineTune').value = this.value" class="studio-select w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-slate-200 outline-none text-xs cursor-pointer">
+                <option value="Balanced Commercial Lookbook Standards (Neutral Exposure, Sharp Garment Weave, Zero Airbrushing)" selected>Balanced Commercial Lookbook Standards (Default - Recommended)</option>
+                <option value="Ultra-Realistic Skin Texture (Accentuate Visible Micro-Pores, Authentic Epidermal Sheen, No CGI Polish)">Ultra-Realistic Skin Texture (Accentuate Visible Micro-Pores & Texture)</option>
+                <option value="Raw Mobile UGC Realism (iPhone 15 Pro, 28mm Focal Lens, Subtle Sensor Grain, Candid Handheld)">Raw Mobile UGC Realism (iPhone 15 Pro, Subtle Sensor Grain, Candid Handheld)</option>
+                <option value="High-Fashion Editorial Contrast (Sharp Fabric Seams, Crisp Specular Highlights, Deep Controlled Shadows)">High-Fashion Editorial Contrast (Sharp Fabric Weave & Controlled Shadows)</option>
+                <option value="Soft Flattering Beauty Diffusion (Gentle Radiant Skin Glow, Flattering Catchlights in Eyes)">Soft Flattering Beauty Diffusion (Radiant Glow & Eye Catchlights)</option>
+                <option value="Dynamic Candid Motion (Natural Head Tilt, Casual Weight Shift, Unposed Posture)">Dynamic Candid Motion (Natural Unposed Posture & Organic Head Tilt)</option>
+                <option value="Macro Product-in-Hand Focus (Hyper-Detailed Fingernails, Product Label Crispness & Fine Texture)">Macro Product-in-Hand Focus (Crisp Product Label & Hand Details)</option>
+                <option value="Cinematic 35mm Analog Film Grain (Subtle Warm Vintage Tone, Halation, Authentic Color Rendition)">Cinematic 35mm Analog Film Feel (Subtle Grain & Analog Warmth)</option>
+                <option value="Minimalist Monochromatic Studio (Muted Neutral Grays, Clean Drop Shadows, Scandinavian Palette)">Minimalist Monochromatic Studio (Clean Drop Shadows & Scandinavian Palette)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1 font-medium">Manual Fine-Tune Directive (Editable)</label>
+              <textarea id="inputFineTune" rows="2" placeholder="Type custom fine-tuning rules, camera angles, prompt modifications..." class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl p-2.5 text-slate-200 text-xs outline-none resize-none">Balanced Commercial Lookbook Standards (Neutral Exposure, Sharp Garment Weave, Zero Airbrushing)</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI ENGINE QUICK SWITCHER BAR -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between gap-2 text-xs shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400 font-medium flex items-center gap-1.5 text-[11px]">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span class="hidden sm:inline">Synthesizer Engine:</span>
+            </span>
+            <div class="flex items-center bg-slate-950 border border-slate-800 p-0.5 rounded-xl text-[11px] font-medium gap-0.5">
+              <button type="button" id="ctaBtnGemini" onclick="setPreferredProvider('gemini')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-400 hover:text-white">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Gemini
+              </button>
+              <button type="button" id="ctaBtnOpenAI" onclick="setPreferredProvider('openai')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-400 hover:text-white">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ChatGPT
+              </button>
+              <button type="button" id="ctaBtnClaude" onclick="setPreferredProvider('claude')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-400 hover:text-white">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Claude
+              </button>
+              <button type="button" id="ctaBtnAuto" onclick="setPreferredProvider('auto')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1 text-slate-400 hover:text-white">
+                <span>⚡ Auto</span>
+              </button>
+            </div>
+          </div>
+          <span id="activeModelLabelText" class="text-[11px] text-blue-300 font-semibold hidden md:inline-block">Google Gemini Active</span>
+        </div>
+
+        <!-- GENERATE CTA -->
+        <button id="btnGenerate" onclick="generateMasterPrompt()" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3.5 px-6 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-xl shadow-blue-500/25 transition active:scale-[0.99]">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span id="generateButtonText">Generate 3-Shot Lookbook & UGC Prompts</span>
+        </button>
+
+      </div>
+
+      <!-- RIGHT COLUMN: 3-SHOT LOOKBOOK & LOCKS (6 cols) -->
+      <div class="lg:col-span-6 space-y-4">
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+              <h2 class="font-bold text-sm text-white">Generated Output Package</h2>
+              <span id="outFormatBadge" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">📱 9:16</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="copyAllOutputs()" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 flex items-center gap-1 transition">
+                <i data-lucide="copy" class="w-3 h-3"></i> Copy All
+              </button>
+              <button onclick="downloadOutputsTxt()" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 flex items-center gap-1 transition">
+                <i data-lucide="download" class="w-3 h-3"></i> Export TXT
+              </button>
+            </div>
+          </div>
+
+          <!-- ======================================================================= -->
+          <!-- IN-PLACE PROMPT REFINEMENT & CORRECTION BAR                            -->
+          <!-- ======================================================================= -->
+          <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 border border-blue-500/30 rounded-xl p-3.5 space-y-2.5 shadow-md">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 rounded-full flex items-center gap-1">
+                  <i data-lucide="wrench" class="w-3 h-3 text-blue-400"></i> In-Place Refinement
+                </span>
+                <span class="text-[11px] text-slate-300 font-semibold">Make any correction right here</span>
+              </div>
+              <span id="refineRevisionBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono">v1 (Original)</span>
+            </div>
+
+            <!-- Refine input and button -->
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <input type="text" id="refineCorrectionInput" placeholder="e.g. Change outfit to white linen shirt, add thin gold glasses, warm sunset lighting" class="w-full bg-slate-950 border border-slate-700 focus:border-blue-400 rounded-xl pl-3 pr-8 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition" onkeydown="if(event.key==='Enter') applyPromptRefinement()">
+                <button type="button" onclick="document.getElementById('refineCorrectionInput').value=''" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs" title="Clear">✕</button>
+              </div>
+              <button type="button" id="btnApplyRefine" onclick="applyPromptRefinement()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/20 transition active:scale-[0.98] shrink-0">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span id="btnApplyRefineText">Apply & Update</span>
+              </button>
+            </div>
+
+            <!-- Quick adjustment pills -->
+            <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-0.5 text-[10px]">
+              <span class="text-slate-500 font-medium shrink-0">Quick tweaks:</span>
+              <button type="button" onclick="quickAddRefinementTag('add thin gold wireframe glasses')" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 shrink-0 transition flex items-center gap-1">
+                <span>👓 Add Glasses</span>
+              </button>
+              <button type="button" onclick="quickAddRefinementTag('change wardrobe to white silk button-down shirt and beige trousers')" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 shrink-0 transition flex items-center gap-1">
+                <span>🧥 White Silk Shirt</span>
+              </button>
+              <button type="button" onclick="quickAddRefinementTag('warm golden hour directional sunlight')" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 shrink-0 transition flex items-center gap-1">
+                <span>🌅 Golden Hour</span>
+              </button>
+              <button type="button" onclick="quickAddRefinementTag('hair tied in a messy top-knot bun with face tendrils')" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 shrink-0 transition flex items-center gap-1">
+                <span>💇 Messy Bun</span>
+              </button>
+              <button type="button" onclick="quickAddRefinementTag('warm approachable friendly smile with eye catchlights')" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 shrink-0 transition flex items-center gap-1">
+                <span>😊 Friendly Smile</span>
+              </button>
+              <button type="button" onclick="quickAddRefinementTag('outdoor cafe terrace with soft city blur')" class="px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60 shrink-0 transition flex items-center gap-1">
+                <span>🏙️ Outdoor Cafe</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PRIMARY TABS -->
+          <div class="flex border-b border-slate-800 gap-2 pb-2 text-[11px] overflow-x-auto scrollbar-none font-medium">
+            <button onclick="switchOutputTab('lookbook')" id="tabLookbookBtn" class="output-tab active text-blue-400 border-b-2 border-blue-400 pb-1 whitespace-nowrap">📸 3-Shot Lookbook Pack</button>
+            <button onclick="switchOutputTab('productad')" id="tabProductAdBtn" class="output-tab text-slate-400 hover:text-slate-200 pb-1 whitespace-nowrap">🛍️ Commercial Ad</button>
+            <button onclick="switchOutputTab('charlock')" id="tabCharBtn" class="output-tab text-slate-400 hover:text-slate-200 pb-1 whitespace-nowrap">🔒 Character Lock</button>
+            <button onclick="switchOutputTab('stylelock')" id="tabStyleBtn" class="output-tab text-slate-400 hover:text-slate-200 pb-1 whitespace-nowrap">🎨 Style Lock</button>
+            <button onclick="switchOutputTab('camlock')" id="tabCamBtn" class="output-tab text-slate-400 hover:text-slate-200 pb-1 whitespace-nowrap">🎥 Camera Lock</button>
+            <button onclick="switchOutputTab('negprompt')" id="tabNegBtn" class="output-tab text-slate-400 hover:text-slate-200 pb-1 whitespace-nowrap">🚫 Negatives</button>
+          </div>
+
+          <!-- TAB CONTENT 1: 3-SHOT LOOKBOOK PACK (MATCHING USER REFERENCE) -->
+          <div id="outputPanelLookbook" class="output-panel space-y-4">
+            
+            <!-- Shot 1: Face Portrait Close-up -->
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-blue-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                  Panel 1: Face Close-Up Portrait (Exact Facial Identity)
+                </span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-slate-500 hidden sm:inline italic">Editable</span>
+                  <button onclick="copyToClipboard('outShot1Text', this)" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                  </button>
+                </div>
+              </div>
+              <div id="outShot1Text" contenteditable="true" spellcheck="false" title="Click to hand-edit this prompt directly" class="font-mono text-[11px] leading-relaxed text-slate-200 whitespace-pre-wrap select-all max-h-32 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-blue-500/60 rounded-lg p-1 outline-none transition">
+Click "Generate 3-Shot Lookbook & UGC Prompts" to synthesize.
+              </div>
+            </div>
+
+            <!-- Shot 2: Full-Body Front (Face Not Visible) -->
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-cyan-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  Panel 2: Full-Body Front (Face Cropped / Not Visible)
+                </span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-slate-500 hidden sm:inline italic">Editable</span>
+                  <button onclick="copyToClipboard('outShot2Text', this)" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                  </button>
+                </div>
+              </div>
+              <div id="outShot2Text" contenteditable="true" spellcheck="false" title="Click to hand-edit this prompt directly" class="font-mono text-[11px] leading-relaxed text-slate-200 whitespace-pre-wrap select-all max-h-32 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-cyan-500/60 rounded-lg p-1 outline-none transition">
+Shot 2 will appear here.
+              </div>
+            </div>
+
+            <!-- Shot 3: Full-Body Back (Rear View) -->
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-purple-400 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+                  Panel 3: Full-Body Back (Rear View / Face Not Visible)
+                </span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-slate-500 hidden sm:inline italic">Editable</span>
+                  <button onclick="copyToClipboard('outShot3Text', this)" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                  </button>
+                </div>
+              </div>
+              <div id="outShot3Text" contenteditable="true" spellcheck="false" title="Click to hand-edit this prompt directly" class="font-mono text-[11px] leading-relaxed text-slate-200 whitespace-pre-wrap select-all max-h-32 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-purple-500/60 rounded-lg p-1 outline-none transition">
+Shot 3 will appear here.
+              </div>
+            </div>
+
+            <!-- Triptych Composite Prompt -->
+            <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 space-y-1">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-slate-300 text-[11px]">3-Panel Triptych Composite Prompt (All 3 in 1 Image):</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] text-slate-500 hidden sm:inline italic">Editable</span>
+                  <button onclick="copyToClipboard('outTriptychText', this)" class="text-[11px] text-cyan-400 hover:underline">Copy Triptych</button>
+                </div>
+              </div>
+              <div id="outTriptychText" contenteditable="true" spellcheck="false" title="Click to hand-edit this prompt directly" class="font-mono text-[10px] text-slate-400 line-clamp-2 select-all focus:line-clamp-none focus:bg-slate-900 focus:ring-1 focus:ring-cyan-500/60 rounded p-1 outline-none transition">
+Generate lookbook to view the 3-panel side-by-side composite prompt.
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 2: COMMERCIAL PRODUCT AD -->
+          <div id="outputPanelProductAd" class="output-panel hidden space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Commercial UGC Ad Prompt (Character + Product Action):</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-500 italic">Editable</span>
+                <button onclick="copyToClipboard('outProductAdText', this)" class="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-[11px]">
+                  <i data-lucide="copy" class="w-3 h-3"></i> Copy Ad Prompt
+                </button>
+              </div>
+            </div>
+            <div id="outProductAdText" contenteditable="true" spellcheck="false" title="Click to hand-edit this prompt directly" class="p-4 bg-slate-950 rounded-xl border border-slate-800 font-mono text-xs leading-relaxed text-slate-200 select-all whitespace-pre-wrap max-h-96 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-blue-500/60 outline-none transition">
+Commercial UGC prompt will appear here.
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 3: CHARACTER LOCK -->
+          <div id="outputPanelCharLock" class="output-panel hidden space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Reusable Character Identity Lock:</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-500 italic">Editable</span>
+                <button onclick="copyToClipboard('outCharLockText', this)" class="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-[11px]">
+                  <i data-lucide="copy" class="w-3 h-3"></i> Copy Lock
+                </button>
+              </div>
+            </div>
+            <div id="outCharLockText" contenteditable="true" spellcheck="false" title="Click to hand-edit this lock directly" class="p-4 bg-slate-950 rounded-xl border border-slate-800 font-mono text-xs leading-relaxed text-slate-200 select-all whitespace-pre-wrap max-h-96 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-blue-500/60 outline-none transition">
+Character lock will appear here.
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 4: STYLE LOCK -->
+          <div id="outputPanelStyleLock" class="output-panel hidden space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Reusable Style & Anti-CGI Lock:</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-500 italic">Editable</span>
+                <button onclick="copyToClipboard('outStyleLockText', this)" class="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-[11px]">
+                  <i data-lucide="copy" class="w-3 h-3"></i> Copy Lock
+                </button>
+              </div>
+            </div>
+            <div id="outStyleLockText" contenteditable="true" spellcheck="false" title="Click to hand-edit this lock directly" class="p-4 bg-slate-950 rounded-xl border border-slate-800 font-mono text-xs leading-relaxed text-slate-200 select-all whitespace-pre-wrap max-h-96 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-blue-500/60 outline-none transition">
+Style lock will appear here.
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 5: CAMERA LOCK -->
+          <div id="outputPanelCamLock" class="output-panel hidden space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Optics, Lenses & Studio Angles Lock:</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-500 italic">Editable</span>
+                <button onclick="copyToClipboard('outCamLockText', this)" class="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-[11px]">
+                  <i data-lucide="copy" class="w-3 h-3"></i> Copy Camera Lock
+                </button>
+              </div>
+            </div>
+            <div id="outCamLockText" contenteditable="true" spellcheck="false" title="Click to hand-edit this lock directly" class="p-4 bg-slate-950 rounded-xl border border-slate-800 font-mono text-xs leading-relaxed text-slate-200 select-all whitespace-pre-wrap max-h-96 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-blue-500/60 outline-none transition">
+Camera lock will appear here.
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 6: NEGATIVE PROMPT -->
+          <div id="outputPanelNegPrompt" class="output-panel hidden space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Contextual Anti-AI Negative Terms:</span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-500 italic">Editable</span>
+                <button onclick="copyToClipboard('outNegPromptText', this)" class="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-[11px]">
+                  <i data-lucide="copy" class="w-3 h-3"></i> Copy Negatives
+                </button>
+              </div>
+            </div>
+            <div id="outNegPromptText" contenteditable="true" spellcheck="false" title="Click to hand-edit this prompt directly" class="p-4 bg-slate-950 rounded-xl border border-slate-800 font-mono text-xs leading-relaxed text-slate-200 select-all whitespace-pre-wrap max-h-96 overflow-y-auto focus:bg-slate-900 focus:ring-1 focus:ring-blue-500/60 outline-none transition">
+Negative prompt will appear here.
+            </div>
+          </div>
+
+          <!-- EXTERNAL ENGINE COPY BUTTONS -->
+          <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span class="text-slate-400">Paste prompt into:</span>
+            <div class="flex items-center gap-2">
+              <button onclick="openInAdobeFirefly()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-xl border border-slate-700 flex items-center gap-1.5 transition">
+                <i data-lucide="external-link" class="w-3 h-3"></i> Adobe Firefly
+              </button>
+              <button onclick="copyForMidjourney()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded-xl border border-slate-700 flex items-center gap-1.5 transition">
+                <i data-lucide="copy" class="w-3 h-3"></i> Midjourney v6
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- VIEW 2: AI CREATIVE DIRECTOR CHAT                                       -->
+    <!-- ======================================================================= -->
+    <div id="viewChat" class="hidden max-w-4xl mx-auto space-y-4">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+              <i data-lucide="bot" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-sm text-white">AI UGC Creative Director</h2>
+              <p class="text-xs text-slate-400">Ask for hook ideas, cultural styling advice, or prompt refinements</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400 text-[11px] font-medium hidden sm:inline">Engine:</span>
+            <div class="flex bg-slate-950 border border-slate-800 p-0.5 rounded-xl text-[10px] font-medium gap-0.5">
+              <button type="button" id="chatBtnGemini" onclick="setPreferredProvider('gemini')" class="px-2 py-0.5 rounded-lg transition text-slate-400 hover:text-white">Gemini</button>
+              <button type="button" id="chatBtnOpenAI" onclick="setPreferredProvider('openai')" class="px-2 py-0.5 rounded-lg transition text-slate-400 hover:text-white">ChatGPT</button>
+              <button type="button" id="chatBtnClaude" onclick="setPreferredProvider('claude')" class="px-2 py-0.5 rounded-lg transition text-slate-400 hover:text-white">Claude</button>
+              <button type="button" id="chatBtnAuto" onclick="setPreferredProvider('auto')" class="px-2 py-0.5 rounded-lg transition text-slate-400 hover:text-white">Auto</button>
+            </div>
+            <span id="chatModelIndicator" class="text-xs bg-slate-950 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full font-mono">
+              Online
+            </span>
+          </div>
+        </div>
+
+        <!-- Quick Prompt Suggestion Pills -->
+        <div class="flex flex-wrap gap-2 text-xs">
+          <button onclick="sendQuickChatMessage('Suggest 3 viral scroll-stopping TikTok hooks for this product')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+            💡 3 Viral Hooks
+          </button>
+          <button onclick="sendQuickChatMessage('How can I optimize the 3-shot lookbook for commercial fashion consistency?')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+            📸 3-Shot Lookbook Tips
+          </button>
+          <button onclick="sendQuickChatMessage('What outfit and colors best suit an Indian skincare UGC creator?')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+            👗 Recommend Regional Outfits
+          </button>
+        </div>
+
+        <!-- Chat Conversation Log -->
+        <div id="chatMessageLog" class="h-96 overflow-y-auto bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4 text-xs">
+          <div class="flex gap-3 text-slate-200">
+            <div class="w-7 h-7 rounded-lg bg-blue-600/30 text-blue-400 flex items-center justify-center shrink-0">
+              <i data-lucide="bot" class="w-4 h-4"></i>
+            </div>
+            <div class="space-y-1 bg-slate-900 p-3 rounded-xl border border-slate-800/80 max-w-xl">
+              <p class="font-semibold text-blue-400 text-[11px]">Creative Director</p>
+              <p>Hello! I am your AI UGC Creative Director. I have loaded your campaign brief for <strong class="text-white" id="chatBriefProduct">Minimalist Black Linen Shirt & Trouser Set</strong>. How can I help you refine your 3-shot lookbook, cast the character, or write viral hooks today?</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <form onsubmit="handleSendChatMessage(event)" class="flex gap-2">
+          <input type="text" id="chatInputMessage" placeholder="Ask your AI director anything (e.g. 'Make the hook punchier', 'Suggest footwear')..." class="flex-1 bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-4 py-2.5 text-xs text-slate-100 outline-none">
+          <button type="submit" id="btnSendChat" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Send</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- CONNECT AI ACCOUNTS MODAL                                                 -->
+  <!-- ========================================================================= -->
+  <div id="modalApiKeys" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+            <i data-lucide="key" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">AI Provider Keys</h3>
+            <p class="text-[11px] text-slate-400">The app automatically routes to your connected account</p>
+          </div>
+        </div>
+        <button onclick="closeApiKeysModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Priority Model Selector -->
+      <div class="space-y-1.5">
+        <label class="block font-semibold text-xs text-slate-200">Default Priority Model</label>
+        <select id="selectPreferredProvider" onchange="setPreferredProvider(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-xs text-slate-200 outline-none">
+          <option value="auto">⚡ Auto-Select Best Available (Recommended)</option>
+          <option value="gemini">Google Gemini Pro (with Live Google Search)</option>
+          <option value="openai">OpenAI (ChatGPT / GPT-4o)</option>
+          <option value="claude">Anthropic Claude (3.5 Sonnet)</option>
+        </select>
+      </div>
+
+      <!-- Google Gemini -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs">
+          <label class="font-semibold text-slate-300 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            Google Gemini Pro (Live Google Search Grounding)
+          </label>
+          <div class="flex items-center gap-2">
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] text-blue-400 hover:underline">1-Click Google Sign-In ↗</a>
+            <button onclick="testKey('gemini')" class="text-[11px] text-cyan-400 hover:underline font-semibold">Test</button>
+          </div>
+        </div>
+        <input type="password" id="keyGemini" placeholder="AIzaSy... (Paste Gemini Key)" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none">
+      </div>
+
+      <!-- OpenAI Key -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs">
+          <label class="font-semibold text-slate-300 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            OpenAI (ChatGPT / GPT-4o)
+          </label>
+          <div class="flex items-center gap-2">
+            <a href="https://platform.openai.com/api-keys" target="_blank" class="text-[11px] text-emerald-400 hover:underline">Get Key ↗</a>
+            <button onclick="testKey('openai')" class="text-[11px] text-cyan-400 hover:underline font-semibold">Test</button>
+          </div>
+        </div>
+        <input type="password" id="keyOpenAI" placeholder="sk-proj-... (Paste OpenAI Key)" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none">
+      </div>
+
+      <!-- Anthropic Claude Key -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between text-xs">
+          <label class="font-semibold text-slate-300 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-purple-400"></span>
+            Anthropic Claude (3.5 Sonnet)
+          </label>
+          <div class="flex items-center gap-2">
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-[11px] text-purple-400 hover:underline">Get Key ↗</a>
+            <button onclick="testKey('claude')" class="text-[11px] text-cyan-400 hover:underline font-semibold">Test</button>
+          </div>
+        </div>
+        <input type="password" id="keyClaude" placeholder="sk-ant-api03-... (Paste Claude Key)" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none">
+      </div>
+
+      <div id="keyTestResult" class="hidden p-2.5 rounded-xl text-xs font-mono"></div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button onclick="closeApiKeysModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">Cancel</button>
+        <button onclick="saveApiKeys()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition shadow-md">Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

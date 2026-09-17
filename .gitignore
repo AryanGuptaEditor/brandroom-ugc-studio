@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+*.log
+server.log
+
+# macOS
+.DS_Store
+
+# Local desktop app bundle
+Brandroom UGC Studio.app/

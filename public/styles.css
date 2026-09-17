@@ -1,0 +1,109 @@
+/* Brandroom AI UGC Creator Studio custom styles */
+
+body {
+  background-color: #0b0f17;
+  color: #f1f5f9;
+}
+
+/* Glassmorphism subtle accents */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 65, 85, 0.4);
+}
+
+/* Active provider pill */
+.provider-pill.active {
+  background-color: #4055e8;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(64, 85, 232, 0.35);
+}
+
+/* Output tabs */
+.output-tab.active {
+  color: #5a6df0;
+  border-bottom: 2px solid #4055e8;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090d14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Outfit Card hover effects */
+.outfit-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.outfit-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(64, 85, 232, 0.5);
+}
+
+.outfit-card.selected {
+  border-color: #4055e8;
+  background-color: rgba(64, 85, 232, 0.08);
+}
+
+/* Persona card */
+.persona-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.persona-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.persona-card.selected {
+  border-color: #06b6d4;
+  background-color: rgba(6, 182, 212, 0.08);
+}
+
+/* Custom styled visible select dropdown */
+.studio-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem 1rem;
+  padding-right: 2.25rem;
+}
+
+.studio-select:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234055e8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+}
+
+/* Character Vault Card */
+.character-vault-card {
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.character-vault-card:hover {
+  border-color: rgba(64, 85, 232, 0.4);
+}
+
+.character-vault-card.active-character {
+  border-color: #4055e8;
+  box-shadow: 0 0 14px rgba(64, 85, 232, 0.25);
+  background-color: rgba(64, 85, 232, 0.08);
+}
+
